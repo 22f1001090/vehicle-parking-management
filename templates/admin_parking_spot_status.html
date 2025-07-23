@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Parking Spot Status
+{% endblock %}
+
+{% block content %}
+<div>
+    <h1>View/Delete Parking Lot</h1>
+</div>
+<div>
+    <div class="form-group">
+    <label for="id">Spot ID: </label>
+    <input type="number" class="form-control" id="id" value="{{ spot.id }}" disabled>
+    </div>
+    
+    <div class="form-group">
+    {% if spot.status=='A' %}
+    <label for="status">Status: </label>
+    {% else %}
+    <label for="status"><a href="/admin/occupied_spot_details/{{ spot.id }}">Status: </a></label>
+    {% endif %}
+    <input type="text" class="form-control" id="status" value="{{ spot.status }}" disabled>
+    </div>
+
+    <a href="/admin/parking_spot/delete/{{ spot.id }}" class="btn btn-primary">Delete</a>
+    <a href="/admin/dashboard" class="btn btn-primary">Cancel</a>
+</div>
+{% endblock %}

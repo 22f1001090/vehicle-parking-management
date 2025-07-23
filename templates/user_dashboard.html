@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block title %}
+User Dashboard
+{% endblock %}
+
+{% block content %}
+{% include "nav.html" %}
+<div class="header">
+    <h1>Recent Parking History</h1>
+</div>
+<hr>
+<div>
+    <h1>Parking Lots</h1>
+    <table class="table">
+        <thead class="thead-light">
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Address</th>
+                <th scope="col">Availability</th>
+                <th scope="col">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for parking_lot in parking_lots%}
+            <tr>
+                <th scope="row">{{ parking_lot.id }}</th>
+                <td>{{ parking_lot.address }}</td>
+                <td>{{ parking_lot.maximum_no_of_spots }}</td>
+                <td><a href="/user/book/parking_spot/{{ parking_lot.id }}" class="btn btn-success">Book</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
