@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Login - Vehicle Parking
+{% endblock %}
+
+{% block content %}
+{% include "flash.html" %}
+<div>
+    <form method="post">
+        <header>
+            <h1> User Login </h1>
+        </header>
+        <div class="form-group">
+            <label for="email">Registered Email ID: </label>
+            <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password: </label>
+            <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+        </div>
+
+        <input type="submit" value="Login" class="btn btn-primary">
+        <footer>
+            <a href="{{ url_for('register') }}">Create Account?</a>
+        </footer>
+    </form>
+
+</div>
+{% endblock %}

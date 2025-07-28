@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Admin Dashboard
+{% endblock %}
+
+{% block content %}
+{% include "flash.html" %}
+{% include "nav.html" %}
+<div class="header">
+  <h1>Parking Lot</h1>
+</div>
+
+<div class="container mt-5">
+  <div class="row text-center">
+    {% for parking_lot in parking_lots %}
+    <div class="col-md-4 mt-5">
+      <div class="p-4 bg-light border rounded shadow">
+        <h3>Parking #{{ parking_lot.id }}</h3>
+        <p>{{ parking_lot.prime_location_name }}</p>
+        <a href="/admin/parking_lot/{{ parking_lot.id }}/update">Edit |</a>
+        <a href="/admin/parking_lot/{{ parking_lot.id }}/delete">Delete</a><br>
+        <p>(Occupied:0/{{ parking_lot.maximum_no_of_spots }})</p>
+        <hr>
+        <p>Here you will see available or occupated vacancy</p>
+        <div class="d-flex flex-wrap gap-2">
+        {% for spot in parking_lot.spots %}
+          <a href="/admin/parking_lot/{{ spot.id }}" class="btn btn-sm mr-2 mt-2
+          {% if spot.status == 'A' %}
+            btn-success
+          {% else %}
+            btn-secondary
+          {% endif %}">
+          {{ spot.status }}
+          </a>
+        {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+
+  <div class=" footer">
+    <a href="{{ url_for('create_parking_lot') }}" class="btn btn-primary mt-5">+Add Lot</a>
+  </div>
+  {% endblock %}
+
+  {% block style %}
+  <style>
+    .header {
+      border: 2px solid black;
+      margin-top: 25px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .footer {
+      text-align: center
+    }
+
+    /* .container{
+        display: inline;
+    } */
+  </style>
+  {% endblock %}
