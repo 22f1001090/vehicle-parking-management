@@ -15,15 +15,15 @@ Parking Spot Status
     </div>
     
     <div class="form-group">
-    {% if spot.status=='A' %}
     <label for="status">Status: </label>
-    {% else %}
-    <label for="status"><a href="/admin/occupied_spot_details/{{ spot.id }}">Status: </a></label>
-    {% endif %}
     <input type="text" class="form-control" id="status" value="{{ spot.status }}" disabled>
     </div>
 
+    {% if spot.status=='A' %}
     <a href="/admin/parking_spot/delete/{{ spot.id }}" class="btn btn-primary">Delete</a>
+    {% else %}
+    <a href="/admin/occupied_spot_details/{{ spot.id }}" class="btn btn-secondary">View Details</a>
+    {% endif %}
     <a href="/admin/dashboard" class="btn btn-primary">Cancel</a>
 </div>
 {% endblock %}

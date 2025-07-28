@@ -87,10 +87,19 @@ with app.app_context():
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
+#-----------------------Views---------------------------------
+
+
+
+#-----------------------Index Routes---------------------------------
+
 @app.route('/')
 def index():
     return render_template("index.html")
 
+
+#-----------------------User Authentication Routes------------------------------
 
 @app.route('/login',methods=["GET","POST"])
 def login():
@@ -144,6 +153,9 @@ def register():
     return render_template("register.html")
 
 
+#-----------------------Admin Dashboard Routes---------------------------------
+
+
 @app.route('/admin/dashboard')
 @login_required
 def admin_dashboard():
@@ -153,16 +165,7 @@ def admin_dashboard():
     parking_lots = Parking_Lot.query.all() 
     return render_template("admin_dashboard.html", parking_lots = parking_lots, user = current_user)
 
-
-@app.route('/user/dashboard')
-@login_required
-def user_dashboard():
-    if current_user.is_admin:
-        flash("Unauthorized Access")
-        return redirect('/login')
-    parking_lots = Parking_Lot.query.all()
-    return render_template('user_dashboard.html', parking_lots = parking_lots, user = current_user)
-
+#-----------------------Admin Parking Lot CRUD Operations Routes---------------------------------
 
 @app.route('/admin/create', methods=["GET", 'POST'])
 @login_required
@@ -234,16 +237,8 @@ def delete_parking_lot(lot_id):
     return redirect('/admin/dashboard')
 
 
-@app.route("/admin/users")
-@login_required
-def admin_users():
-    if not current_user.is_admin:
-        flash("You are not allowed to see users.")
-        return redirect('login')
-    
-    users = User.query.all()
-    return render_template("admin_users.html", users = users, user = current_user)
 
+#-----------------------Admin Parking Spot Routes---------------------------------
 
 @app.route("/admin/parking_lot/<int:spot_id>")
 @login_required
@@ -292,7 +287,24 @@ def occupied_spot_details(spot_id):
     
     return render_template("parking_spot_detail.html", reserve = reserve, est_parking_cost = est_parking_cost)
 
+@app.route("/admin/users")
+@login_required
+def admin_users():
+    if not current_user.is_admin:
+        flash("You are not allowed to see users.")
+        return redirect('login')
+    
+    users = User.query.all()
+    return render_template("admin_users.html", users = users, user = current_user)
 
+@app.route('/user/dashboard')
+@login_required
+def user_dashboard():
+    if current_user.is_admin:
+        flash("Unauthorized Access")
+        return redirect('/login')
+    parking_lots = Parking_Lot.query.all()
+    return render_template('user_dashboard.html', parking_lots = parking_lots, user = current_user)
 
 
 @app.route("/user/book/parking_spot/<int:lot_id>", methods=["GET", "POST"])

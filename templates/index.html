@@ -1,11 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page</title>
-</head>
-<body>
-    <h1>Hello World</h1>
-</body>
-</html>
+{% extends "layout.html" %}
+
+
+{% block title %}
+Home Page
+{% endblock %}
+
+{% block content %}
+<div>
+<h1>Welcome to the Vehicle Parking App!</h1>
+<p>Manage your parking lots, spots and vehicle reservation with ease.</p>
+<a href="/login" class="btn btn-primary">Login</a>
+<a href="/register" class="btn btn-secondary">Register</a>
+</div>
+{% endblock %}
+
+{% block style %}
+<style>
+  body {
+    text-align: center;
+    margin-top: 50px;
+  }
+  h1 {
+    color: #333;
+  }
+  .btn {
+    margin: 10px;
+  }
+</style>
+{% endblock %}
