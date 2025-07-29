@@ -5,39 +5,42 @@ New Parking Lot
 {% endblock %}
 
 {% block content %}
-<div>
-    <form method="POST">
-        <header>
-            <h1>New Parking Lot</h1>
-        </header>
-        <div class="form-group">
-            <label for="location">Prime Location Name: </label>
-            <input type="text" class="form-control" id="location" name="location" placeholder="Enter location" required>
+<div class="container mt-5 d-flex justify-content-center">
+  <div class="card shadow-lg p-4 rounded-4" style="min-width: 500px;">
+    <div class="card-body">
+      <h2 class="mb-4 text-center text-primary">Add New Parking Lot</h2>
+      <form method="POST">
+        <div class="mb-3">
+          <label for="location" class="form-label">Prime Location Name:</label>
+          <input type="text" class="form-control" id="location" name="location" placeholder="Enter location" required>
         </div>
 
-        <div class="form-group">
-            <label for="address">Address: </label>
-            <textarea class="form-control" name="address" id="address" placeholder="Address"></textarea required>
+        <div class="mb-3">
+          <label for="address" class="form-label">Address:</label>
+          <textarea class="form-control" name="address" id="address" placeholder="Address" rows="3" required></textarea>
         </div>
 
-        <div class="form-group">
-            <label for="pincode">Pincode: </label>
-            <input type="number" class="form-control" id="pincode" name="pincode" placeholder="Pincode" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="price">Price(per hour): </label>
-            <input type="number" class="form-control" id="price" name="price" placeholder="Price(per hour)" required>
+        <div class="mb-3">
+          <label for="pincode" class="form-label">Pincode:</label>
+          <input type="number" class="form-control" id="pincode" name="pincode" placeholder="Pincode" required>
         </div>
 
-        <div class="form-group">
-            <label for="spots">Maximum number of spots: </label>
-            <input type="number" class="form-control" id="spots" name="spots" placeholder="Maximum spots" required>
+        <div class="mb-3">
+          <label for="price" class="form-label">Price (per hour):</label>
+          <input type="number" class="form-control" id="price" name="price" placeholder="Price (per hour)" required>
         </div>
 
-        <input type="submit" value="Add" class="btn btn-primary">
-        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary">Cancel</a>
+        <div class="mb-4">
+          <label for="spots" class="form-label">Maximum number of spots:</label>
+          <input type="number" class="form-control" id="spots" name="spots" placeholder="Maximum spots" required>
+        </div>
 
-    </form>
+        <div class="d-flex justify-content-between">
+          <button type="submit" class="btn btn-success px-4">Add</button>
+          <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary px-4">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock %}

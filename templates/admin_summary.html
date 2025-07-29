@@ -1,0 +1,13 @@
+{% if revenue_chart %}
+  <div class="col-md-6 text-center">
+    <h4>Revenue from Each Parking Lot</h4>
+    <img src="data:image/png;base64,{{ revenue_chart }}" class="img-fluid rounded shadow" alt="Revenue Chart">
+  </div>
+{% endif %}
+
+{% if status_chart %}
+  <div class="col-md-6 text-center">
+    <h4>Available vs Occupied Spots</h4>
+    <img src="data:image/png;base64,{{ status_chart }}" class="img-fluid rounded shadow" alt="Spot Status Chart">
+  </div>
+{% endif %}

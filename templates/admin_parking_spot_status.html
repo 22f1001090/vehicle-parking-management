@@ -5,25 +5,30 @@ Parking Spot Status
 {% endblock %}
 
 {% block content %}
-<div>
-    <h1>View/Delete Parking Lot</h1>
-</div>
-<div>
-    <div class="form-group">
-    <label for="id">Spot ID: </label>
-    <input type="number" class="form-control" id="id" value="{{ spot.id }}" disabled>
-    </div>
-    
-    <div class="form-group">
-    <label for="status">Status: </label>
-    <input type="text" class="form-control" id="status" value="{{ spot.status }}" disabled>
-    </div>
+<div class="container mt-5 d-flex justify-content-center">
+  <div class="card shadow-lg p-4 rounded-4" style="min-width: 400px;">
+    <div class="card-body">
+      <h2 class="mb-4 text-center text-primary">Parking Spot Details</h2>
 
-    {% if spot.status=='A' %}
-    <a href="/admin/parking_spot/delete/{{ spot.id }}" class="btn btn-primary">Delete</a>
-    {% else %}
-    <a href="/admin/occupied_spot_details/{{ spot.id }}" class="btn btn-secondary">View Details</a>
-    {% endif %}
-    <a href="/admin/dashboard" class="btn btn-primary">Cancel</a>
+      <div class="mb-3">
+        <label for="id" class="form-label">Spot ID:</label>
+        <input type="number" class="form-control" id="id" value="{{ spot.id }}" disabled>
+      </div>
+
+      <div class="mb-4">
+        <label for="status" class="form-label">Status:</label>
+        <input type="text" class="form-control" id="status" value="{{ spot.status }}" disabled>
+      </div>
+
+      <div class="d-flex justify-content-between">
+        {% if spot.status == 'A' %}
+          <a href="/admin/parking_spot/delete/{{ spot.id }}" class="btn btn-danger px-4">Delete</a>
+        {% else %}
+          <a href="/admin/occupied_spot_details/{{ spot.id }}" class="btn btn-secondary px-4">View Details</a>
+        {% endif %}
+        <a href="/admin/dashboard" class="btn btn-outline-primary px-4">Cancel</a>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

@@ -5,36 +5,40 @@ Parking Spot Details
 {% endblock %}
 
 {% block content %}
-<div>
-    <h1>Occupied Parking Spot Details</h1>
-</div>
-<div>
-    <div class="form-group">
-        <label for="spot_id">Spot ID</label>
-        <input type="text" class="form-control" id="spot_id" value="{{ reserve.spot_id }}" disabled> 
-    </div>
+<div class="container mt-5 d-flex justify-content-center">
+  <div class="card shadow-lg p-4 rounded-4" style="min-width: 500px;">
+    <div class="card-body">
+      <h2 class="mb-4 text-center text-primary">Occupied Parking Spot Details</h2>
 
-    <div class="form-group">
-        <label for="cust_id">Customer ID</label>
+      <div class="mb-3">
+        <label for="spot_id" class="form-label">Spot ID:</label>
+        <input type="text" class="form-control" id="spot_id" value="{{ reserve.spot_id }}" disabled>
+      </div>
+
+      <div class="mb-3">
+        <label for="cust_id" class="form-label">Customer ID:</label>
         <input type="text" class="form-control" id="cust_id" value="{{ reserve.user_id }}" disabled>
-    </div>
+      </div>
 
-    <div class="form-group">
-        <label for="vehicle">Vehicle No</label>
-        <input type="text" class="form-control" id="vehicle" value="{{ reserve.vehicle_no }}"disabled>
-    </div>
+      <div class="mb-3">
+        <label for="vehicle" class="form-label">Vehicle Number:</label>
+        <input type="text" class="form-control" id="vehicle" value="{{ reserve.vehicle_no }}" disabled>
+      </div>
 
-    <div class="form-group">
-        <label for="time">Time of Parking</label>
+      <div class="mb-3">
+        <label for="time" class="form-label">Time of Parking:</label>
         <input type="text" class="form-control" id="time" value="{{ reserve.start_time.strftime('%Y-%m-%d %H:%M') }}" disabled>
-    </div>
+      </div>
 
-    <div class="form-group">
-        <label for="cost">Est. Parking Cost</label>
+      <div class="mb-4">
+        <label for="cost" class="form-label">Est. Parking Cost:</label>
         <input type="text" class="form-control" id="cost" value="{{ est_parking_cost }}" disabled>
+      </div>
+
+      <div class="text-center">
+        <a href="/admin/dashboard" class="btn btn-outline-primary px-4">Close</a>
+      </div>
     </div>
-
-    <a href="/admin/dashboard" class="btn btn-primary">Close</a>
-
+  </div>
 </div>
 {% endblock %}

@@ -1,0 +1,71 @@
+{% extends "layout.html" %}
+
+{% block title %}Admin - Search{% endblock %}
+
+{% block content %}
+{% include "nav.html" %}
+
+<div class="container mt-4">
+  <!-- Search Panel -->
+  <div class="card p-4 shadow-sm mb-5">
+    <form method="GET" action="{{ url_for('admin_search') }}">
+      <div class="row align-items-center">
+        <div class="col-md-3">
+          <label for="search_by" class="form-label fw-bold">Search by:</label>
+          <select class="form-select" name="search_by" id="search_by" required>
+            <option value="" disabled selected>Select category</option>
+            <option value="user_id">User ID</option>
+            <option value="location">Parking Lot Location</option>
+            <option value="spot_id">Spot ID</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label for="search_term" class="form-label fw-bold">Search string:</label>
+          <input type="text" name="search_term" id="search_term" class="form-control" placeholder="Enter value..." required>
+        </div>
+        <div class="col-md-3 text-center mt-4">
+          <button class="btn btn-primary px-4" type="submit">Search</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Example Heading -->
+  {% if search_by and search_term %}
+  <h5 class="text-center text-info mb-4">
+    Parking lots @<span class="fw-bold">{{ search_term }}</span>
+  </h5>
+  {% endif %}
+
+  <!-- Search Results -->
+  <div class="row">
+    {% for lot in results %}
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title text-center text-primary">Parking #{{ lot.id }}</h5>
+          <p class="text-center">
+            <a href="/admin/parking_lot/{{ lot.id }}/update" class="text-decoration-none text-success">Edit</a> |
+            <a href="/admin/parking_lot/{{ lot.id }}/delete" class="text-decoration-none text-danger">Delete</a>
+          </p>
+          <p class="text-center text-muted">Occupied: {{ lot.spots | selectattr("status", "ne", "A") | list | length }} / {{ lot.maximum_no_of_spots }}</p>
+          <hr>
+          <div class="d-flex flex-wrap gap-2 justify-content-center">
+            {% for spot in lot.spots %}
+            <span class="btn btn-sm mr-2 mt-2
+              {% if spot.status == 'A' %}
+                btn-success
+              {% else %}
+                btn-secondary
+              {% endif %}">
+              {{ spot.status }}
+            </span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,38 +1,42 @@
 {% extends "layout.html" %}
 
 {% block title %}
-Users
+Admin-Users
 {% endblock %}
 
 {% block content %}
 {% include "nav.html" %}
-<div class="header">
-<h1>Registerd Users</h1>
-</div>
-<div class="main">
-    <table class="table">
-        <thead class="thead-light">
-            <tr>
-                <th scope="col">ID</th>
-                <th scope="col">Email</th>
-                <th scope="col">Fullname</th>
-                <th scope="col">Address</th>
-                <th scope="col">Pincode</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for user in users%}
-            {% if user.is_admin==0 %}
-            <tr>
-                <th scope="row">{{ user.id }}</th>
-                <td>{{ user.username }}</td>
-                <td>{{ user.fullname }}</td>
-                <td>{{ user.address }}</td>
-                <td>{{ user.pincode }}</td>
-            </tr>
-            {% endif %}
-            {% endfor %}
-        </tbody>
+
+<div class="container mt-5">
+  <div class="text-center mb-4 border-bottom border-dark pb-2">
+    <h2 class="fw-bold text-primary">Registered Users</h2>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped align-middle shadow-sm">
+      <thead class="table-light">
+        <tr class="text-center">
+          <th scope="col">ID</th>
+          <th scope="col">Email</th>
+          <th scope="col">Full Name</th>
+          <th scope="col">Address</th>
+          <th scope="col">Pincode</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        {% if user.is_admin == 0 %}
+        <tr class="text-center">
+          <th scope="row">{{ user.id }}</th>
+          <td>{{ user.username }}</td>
+          <td>{{ user.fullname | title }}</td>
+          <td>{{ user.address | title }}</td>
+          <td>{{ user.pincode }}</td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </tbody>
     </table>
+  </div>
 </div>
 {% endblock %}

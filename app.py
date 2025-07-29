@@ -3,6 +3,9 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
 from datetime import datetime
+import matplotlib.pyplot as plt
+import io
+import base64
 
 app = Flask(__name__)
 
@@ -88,7 +91,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-#-----------------------Views---------------------------------
+
 
 
 
@@ -296,6 +299,112 @@ def admin_users():
     
     users = User.query.all()
     return render_template("admin_users.html", users = users, user = current_user)
+
+
+#-----------------------Admin Search Routes---------------------------------
+
+@app.route("/admin/search", methods=["GET"])
+@login_required
+def admin_search():
+    if not current_user.is_admin:
+        flash("Unauthorized access.")
+        return redirect('/login')
+    
+    search_by = request.args.get("search_by")
+    search_term = request.args.get("search_term")
+    results = []
+
+    if search_by and search_term:
+        if search_by == "user_id":
+            results = Reservation.query.filter_by(user_id=search_term).all()
+        elif search_by == "spot_id":
+            spot = Parking_Spot.query.filter_by(id=search_term).first()
+            if spot:
+                lot = Parking_Lot.query.get(spot.lot_id)
+                if lot:
+                    results = [lot]
+        elif search_by == "location":
+            results = Parking_Lot.query.filter(
+                Parking_Lot.prime_location_name.ilike(f"%{search_term}%")
+            ).all()
+        else:
+            flash("Invalid search category selected.")
+
+    return render_template("admin_search.html", results=results, search_by=search_by, search_term=search_term, user = current_user)
+
+
+
+#-----------------------Admin Summary Routes---------------------------------
+def plot_to_base64(fig):
+    img = io.BytesIO()
+    fig.savefig(img, format='png', bbox_inches='tight')
+    img.seek(0)
+    return base64.b64encode(img.read()).decode('utf-8')
+
+@app.route('/admin/summary')
+@login_required
+def admin_summary():
+    if not current_user.is_admin:
+        flash("Unauthorized access.")
+        return redirect('/login')
+
+    lots = Parking_Lot.query.all()
+    lot_names, revenues, available_counts, occupied_counts = [], [], [], []
+
+    for lot in lots:
+        lot_names.append(lot.prime_location_name)
+        total_revenue = 0
+        for spot in lot.spots:
+            reservations = Reservation.query.filter_by(spot_id=spot.id).all()
+            for r in reservations:
+                if r.parking_cost:
+                    total_revenue += r.parking_cost
+        revenues.append(total_revenue)
+        available = sum(1 for s in lot.spots if s.status == 'A')
+        occupied = sum(1 for s in lot.spots if s.status == 'O')
+        available_counts.append(available)
+        occupied_counts.append(occupied)
+
+    # 🛡️ Defense: Prevent empty/zero pie crash
+    if not revenues or sum(revenues) == 0:
+        flash("No revenue data available to plot.")
+        return redirect("/admin/dashboard")
+
+    # --------- Chart 1: Doughnut Revenue ---------
+    fig1, ax1 = plt.subplots()
+    wedges, texts, autotexts = ax1.pie(
+        revenues,
+        labels=lot_names,
+        autopct='%1.1f%%',
+        startangle=90,
+        wedgeprops=dict(width=0.4)
+    )
+    ax1.set_title('Revenue per Parking Lot')
+    revenue_chart = plot_to_base64(fig1)
+    plt.close(fig1)
+
+    # --------- Chart 2: Bar Available vs Occupied ---------
+    x = range(len(lot_names))
+    fig2, ax2 = plt.subplots()
+    ax2.bar(x, available_counts, label='Available', color='skyblue')
+    ax2.bar(x, occupied_counts, bottom=available_counts, label='Occupied', color='salmon')
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(lot_names, rotation=45, ha='right')
+    ax2.set_ylabel('Spots')
+    ax2.set_title('Available vs Occupied Spots')
+    ax2.legend()
+    status_chart = plot_to_base64(fig2)
+    plt.close(fig2)
+
+    return render_template("admin_summary.html",
+                           revenue_chart=revenue_chart,
+                           status_chart=status_chart)
+
+
+
+
+
+#-----------------------User Dashboard Routes---------------------------------
 
 @app.route('/user/dashboard')
 @login_required

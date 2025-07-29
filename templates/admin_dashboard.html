@@ -7,63 +7,89 @@ Admin Dashboard
 {% block content %}
 {% include "flash.html" %}
 {% include "nav.html" %}
-<div class="header">
-  <h1>Parking Lot</h1>
-</div>
+<div class="container mt-4">
+  <div class="text-center border-bottom border-dark pb-3 mb-4">
+    <h1 class="fw-bold text-primary">Admin - Parking Lots Overview</h1>
+  </div>
 
-<div class="container mt-5">
-  <div class="row text-center">
+  <div class="row">
     {% for parking_lot in parking_lots %}
-    <div class="col-md-4 mt-5">
-      <div class="p-4 bg-light border rounded shadow">
-        <h3>Parking #{{ parking_lot.id }}</h3>
-        <p>{{ parking_lot.prime_location_name }}</p>
-        <a href="/admin/parking_lot/{{ parking_lot.id }}/update">Edit |</a>
-        <a href="/admin/parking_lot/{{ parking_lot.id }}/delete">Delete</a><br>
-        <p>(Occupied:0/{{ parking_lot.maximum_no_of_spots }})</p>
-        <hr>
-        <p>Here you will see available or occupated vacancy</p>
-        <div class="d-flex flex-wrap gap-2">
-        {% for spot in parking_lot.spots %}
-          <a href="/admin/parking_lot/{{ spot.id }}" class="btn btn-sm mr-2 mt-2
-          {% if spot.status == 'A' %}
-            btn-success
-          {% else %}
-            btn-secondary
-          {% endif %}">
-          {{ spot.status }}
-          </a>
-        {% endfor %}
+    <div class="col-md-6 col-lg-4 mb-5">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h4 class="card-title text-success text-center mb-3">
+            {{ parking_lot.prime_location_name }}
+          </h4>
+          <p class="card-text fw-semibold text-center mb-2">
+            {{ parking_lot.address }}, {{ parking_lot.pincode }}
+          </p>
+          <p class="card-text fw-semibold text-center mb-3">
+            Price: ₹{{ parking_lot.price }}
+          </p>
+          <div class="mb-2" style="text-align: center;">
+            <a href="/admin/parking_lot/{{ parking_lot.id }}/update"
+              class="btn btn-outline-primary btn-sm me-2">Edit</a>
+            <a href="/admin/parking_lot/{{ parking_lot.id }}/delete" class="btn btn-outline-danger btn-sm">Delete</a>
+          </div>
+
+          <p class="text-muted small" style="text-align: center;">(Occupied: {{ parking_lot.spots | selectattr("status", "ne", "A") | list | length }} /{{ parking_lot.maximum_no_of_spots }})
+          </p>
+          <hr>
+          <p class="text-secondary">Below are spot statuses for this lot:</p>
+
+          <div class="d-flex flex-wrap gap-2">
+            {% for spot in parking_lot.spots %}
+            <a href="/admin/parking_lot/{{ spot.id }}" class="btn btn-sm mr-2 mt-2
+              {% if spot.status == 'A' %}
+                btn-success
+              {% else %}
+                btn-secondary
+              {% endif %}">
+              {{ spot.status }}
+            </a>
+            {% endfor %}
+          </div>
         </div>
       </div>
     </div>
     {% endfor %}
   </div>
-</div>
 
-
-  <div class=" footer">
-    <a href="{{ url_for('create_parking_lot') }}" class="btn btn-primary mt-5">+Add Lot</a>
+  <div class="text-center mt-5">
+    <a href="{{ url_for('create_parking_lot') }}" class="btn btn-lg btn-primary px-5 py-2">+ Add New Lot</a>
   </div>
-  {% endblock %}
 
-  {% block style %}
-  <style>
-    .header {
-      border: 2px solid black;
-      margin-top: 25px;
-    }
+</div>
+{% endblock %}
 
-    h1 {
-      text-align: center;
-    }
+{% block style %}
 
-    .footer {
-      text-align: center
-    }
+<style>
+  h1 {
+    letter-spacing: 1px;
+  }
 
-    /* .container{
-        display: inline;
-    } */
-  </style>
-  {% endblock %}
+  .card {
+    border-radius: 1rem;
+  }
+
+  .card-title {
+    font-weight: bold;
+  }
+
+  .card-body {
+    padding: 1.5rem;
+  }
+
+  .btn-sm {
+    min-width: 38px;
+    text-align: center;
+  }
+
+  .btn-outline-primary:hover,
+  .btn-outline-danger:hover {
+    opacity: 0.85;
+  }
+</style>
+
+{% endblock %}
