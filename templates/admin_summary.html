@@ -1,13 +1,59 @@
-{% if revenue_chart %}
-  <div class="col-md-6 text-center">
-    <h4>Revenue from Each Parking Lot</h4>
-    <img src="data:image/png;base64,{{ revenue_chart }}" class="img-fluid rounded shadow" alt="Revenue Chart">
-  </div>
-{% endif %}
+{% extends "layout.html" %}
 
-{% if status_chart %}
-  <div class="col-md-6 text-center">
-    <h4>Available vs Occupied Spots</h4>
-    <img src="data:image/png;base64,{{ status_chart }}" class="img-fluid rounded shadow" alt="Spot Status Chart">
+{% block title %}
+Admin Summary
+{% endblock %}
+
+{% block content %}
+{% include "nav.html" %}
+
+<div class="container mt-5">
+  <h2 class="text-center text-primary mb-4">Parking Analytics Summary</h2>
+
+  <div class="row mb-4">
+    {% if revenue_chart %}
+    <div class="col-md-6 text-center">
+      <h4 class="text-success">Revenue from Each Parking Lot</h4>
+      <img src="data:image/png;base64,{{ revenue_chart }}" class="img-fluid rounded shadow" alt="Revenue Chart">
+    </div>
+    {% endif %}
+    
+    <div class="col-md-6 text-center">
+      <h4 class="text-info">Available vs Occupied Spots</h4>
+      <img src="data:image/png;base64,{{ status_chart }}" class="img-fluid rounded shadow" alt="Spot Status Chart">
+    </div>
   </div>
-{% endif %}
+
+  <div class="row">
+    <div class="col-12">
+      <h4 class="mb-3 text-secondary">Revenue and Occupancy Details</h4>
+      <table class="table table-bordered table-hover table-striped">
+        <thead class="table-light">
+          <tr>
+            <th>Lot Name</th>
+            <th>Pincode</th>
+            <th>Spots (Available / Occupied)</th>
+            <th>Total Revenue (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for name, pincode, available, occupied, revenue in lot_data %}
+          <tr>
+            <td>{{ name }}</td>
+            <td>{{ pincode }}</td>
+            <td><span class="text-success">{{ available }}</span> / <span class="text-danger">{{ occupied }}</span></td>
+            <td>
+              {% if revenue %}
+                ₹{{ "%.2f"|format(revenue) }}
+              {% else %}
+                <span class="text-muted">No Revenue</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

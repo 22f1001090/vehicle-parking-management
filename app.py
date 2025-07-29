@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
 from datetime import datetime
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
 import base64
@@ -349,56 +351,69 @@ def admin_summary():
         return redirect('/login')
 
     lots = Parking_Lot.query.all()
-    lot_names, revenues, available_counts, occupied_counts = [], [], [], []
+
+    lot_names = []
+    revenues = []
+    pincodes = []
+    available_counts = []
+    occupied_counts = []
 
     for lot in lots:
-        lot_names.append(lot.prime_location_name)
         total_revenue = 0
+        available = 0
+        occupied = 0
+
         for spot in lot.spots:
-            reservations = Reservation.query.filter_by(spot_id=spot.id).all()
-            for r in reservations:
-                if r.parking_cost:
-                    total_revenue += r.parking_cost
+            if spot.status == 'A':
+                available += 1
+            elif spot.status == 'O':
+                occupied += 1
+
+            for reservation in Reservation.query.filter_by(spot_id=spot.id).all():
+                if reservation.parking_cost:
+                    total_revenue += reservation.parking_cost
+
+        lot_names.append(lot.prime_location_name or "Unnamed")
+        pincodes.append(lot.pincode)
         revenues.append(total_revenue)
-        available = sum(1 for s in lot.spots if s.status == 'A')
-        occupied = sum(1 for s in lot.spots if s.status == 'O')
         available_counts.append(available)
         occupied_counts.append(occupied)
 
-    if not revenues or sum(revenues) == 0:
-        flash("No revenue data available to plot.")
-        return redirect("/admin/dashboard")
+    # --- PIE Chart: Revenue (only if revenue exists) ---
+    revenue_chart = None
+    if any(revenues):
+        fig1, ax1 = plt.subplots()
+        ax1.pie(
+            revenues,
+            labels=lot_names,
+            autopct='%1.1f%%',
+            startangle=90,
+            wedgeprops=dict(width=0.4)
+        )
+        ax1.set_title('Revenue per Parking Lot')
+        revenue_chart = plot_to_base64(fig1)
+        plt.close(fig1)
 
-    # --------- Chart 1: Doughnut Revenue ---------
-    fig1, ax1 = plt.subplots()
-    wedges, texts, autotexts = ax1.pie(
-        revenues,
-        labels=lot_names,
-        autopct='%1.1f%%',
-        startangle=90,
-        wedgeprops=dict(width=0.4)
-    )
-    ax1.set_title('Revenue per Parking Lot')
-    revenue_chart = plot_to_base64(fig1)
-    plt.close(fig1)
-
-    # --------- Chart 2: Bar Available vs Occupied ---------
-    x = range(len(lot_names))
+    # --- BAR Chart: Always show availability ---
     fig2, ax2 = plt.subplots()
+    x = range(len(lot_names))
     ax2.bar(x, available_counts, label='Available', color='skyblue')
     ax2.bar(x, occupied_counts, bottom=available_counts, label='Occupied', color='salmon')
     ax2.set_xticks(x)
     ax2.set_xticklabels(lot_names, rotation=45, ha='right')
-    ax2.set_ylabel('Spots')
-    ax2.set_title('Available vs Occupied Spots')
+    ax2.set_ylabel('No. of Spots')
+    ax2.set_title('Spot Availability')
     ax2.legend()
     status_chart = plot_to_base64(fig2)
     plt.close(fig2)
 
+    lot_data = zip(lot_names, pincodes, available_counts, occupied_counts, revenues)
+
     return render_template("admin_summary.html",
                            revenue_chart=revenue_chart,
-                           status_chart=status_chart)
-
+                           status_chart=status_chart,
+                           lot_data=lot_data,
+                           user=current_user)
 
 
 
@@ -450,7 +465,7 @@ def user_dashboard():
         reservations=user_reservations
     )
 
-
+#-----------------------User Parking Spot Booking Routes---------------------------------
 
 
 @app.route("/user/book/parking_spot/<int:lot_id>", methods=["GET", "POST"])
@@ -503,11 +518,7 @@ def release_parking_spot(reservation_id):
     flash("Parking spot released successfully.")
     return redirect('/user/dashboard')
     
-
-
-import io
-import base64
-import matplotlib.pyplot as plt
+#-----------------------User Summary Routes---------------------------------
 
 def plot_to_base64(fig):
     img = io.BytesIO()
@@ -546,13 +557,12 @@ def user_summary():
     usage_chart = plot_to_base64(fig)
     plt.close(fig)
 
-    return render_template("user_summary.html", chart=usage_chart)
+    return render_template("user_summary.html", chart=usage_chart, user = current_user)
 
 
 
 
-
-    
+#-----------------------User Logout Route---------------------------------  
 
 
 
