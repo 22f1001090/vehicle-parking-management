@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+
+{% block title %}User Summary{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center text-primary mb-4">Summary of Your Parking Spot Usage</h2>
+  <div class="text-center">
+    <img src="data:image/png;base64,{{ chart }}" class="img-fluid rounded shadow" alt="User Usage Chart">
+  </div>
+</div>
+{% endblock %}

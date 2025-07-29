@@ -365,7 +365,6 @@ def admin_summary():
         available_counts.append(available)
         occupied_counts.append(occupied)
 
-    # 🛡️ Defense: Prevent empty/zero pie crash
     if not revenues or sum(revenues) == 0:
         flash("No revenue data available to plot.")
         return redirect("/admin/dashboard")
@@ -406,14 +405,52 @@ def admin_summary():
 
 #-----------------------User Dashboard Routes---------------------------------
 
+
+
 @app.route('/user/dashboard')
 @login_required
 def user_dashboard():
     if current_user.is_admin:
         flash("Unauthorized Access")
         return redirect('/login')
-    parking_lots = Parking_Lot.query.all()
-    return render_template('user_dashboard.html', parking_lots = parking_lots, user = current_user)
+
+    search_query = request.args.get('search', '').strip()
+
+    # Search logic for parking lots
+    if search_query:
+        if search_query.isdigit():
+            parking_lots = Parking_Lot.query.filter_by(pincode=int(search_query)).all()
+        else:
+            parking_lots = Parking_Lot.query.filter(
+                Parking_Lot.prime_location_name.ilike(f"%{search_query}%")
+            ).all()
+    else:
+        parking_lots = Parking_Lot.query.all()
+
+    reservations = Reservation.query.filter_by(user_id=current_user.id)\
+        .order_by(Reservation.start_time.desc()).all()
+
+    user_reservations = []
+    for res in reservations:
+        spot = Parking_Spot.query.get(res.spot_id)
+        lot = Parking_Lot.query.get(spot.lot_id)
+        user_reservations.append({
+            "id": res.id,
+            "vehicle_no": res.vehicle_no,
+            "start_time": res.start_time,
+            "end_time": res.end_time,
+            "parking_cost": res.parking_cost,
+            "location_name": lot.prime_location_name
+        })
+
+    return render_template(
+        'user_dashboard.html',
+        parking_lots=parking_lots,
+        user=current_user,
+        reservations=user_reservations
+    )
+
+
 
 
 @app.route("/user/book/parking_spot/<int:lot_id>", methods=["GET", "POST"])
@@ -443,9 +480,73 @@ def book_parking_spot(lot_id):
 
 
     return render_template('book_parking_spot.html', lot=lot, user = current_user, available_spot = available_spot)
+
+
+
+@app.route('/user/release/<int:reservation_id>', methods=["GET", "POST"])
+@login_required
+def release_parking_spot(reservation_id):
+    if current_user.is_admin:
+        flash("Unauthorized Access")
+        return redirect('/login')
+    
+    reservation = Reservation.query.get(reservation_id)
+    if not reservation or reservation.user_id != current_user.id:
+        flash("Reservation not found or unauthorized access.")
+        return redirect('/user/dashboard')
+
+    spot = Parking_Spot.query.get(reservation.spot_id)
+    spot.status = 'A'
+    db.session.delete(reservation)
+    db.session.commit()
+    
+    flash("Parking spot released successfully.")
+    return redirect('/user/dashboard')
     
 
 
+import io
+import base64
+import matplotlib.pyplot as plt
+
+def plot_to_base64(fig):
+    img = io.BytesIO()
+    fig.savefig(img, format='png', bbox_inches='tight')
+    img.seek(0)
+    return base64.b64encode(img.read()).decode('utf-8')
+
+
+@app.route('/user/summary')
+@login_required
+def user_summary():
+    if current_user.is_admin:
+        flash("Unauthorized Access")
+        return redirect('/login')
+
+    reservations = Reservation.query.filter_by(user_id=current_user.id).all()
+
+    # Count usage by location
+    location_count = {}
+    for res in reservations:
+        spot = Parking_Spot.query.get(res.spot_id)
+        lot = Parking_Lot.query.get(spot.lot_id)
+        location = lot.prime_location_name
+        location_count[location] = location_count.get(location, 0) + 1
+
+    # Plot Bar Chart: Number of reservations per location
+    fig, ax = plt.subplots()
+    locations = list(location_count.keys())
+    counts = list(location_count.values())
+    ax.bar(locations, counts, color='skyblue')
+    ax.set_ylabel('Reservations')
+    ax.set_xlabel('Location')
+    ax.set_title('User Parking Spot Usage Summary')
+    ax.tick_params(axis='x', rotation=45)
+
+    usage_chart = plot_to_base64(fig)
+    plt.close(fig)
+
+    return render_template("user_summary.html", chart=usage_chart)
 
 
 

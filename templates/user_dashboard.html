@@ -6,31 +6,71 @@ User Dashboard
 
 {% block content %}
 {% include "nav.html" %}
-<div class="header">
-    <h1>Recent Parking History</h1>
-</div>
-<hr>
-<div>
-    <h1>Parking Lots</h1>
-    <table class="table">
-        <thead class="thead-light">
-            <tr>
-                <th scope="col">ID</th>
-                <th scope="col">Address</th>
-                <th scope="col">Availability</th>
-                <th scope="col">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for parking_lot in parking_lots%}
-            <tr>
-                <th scope="row">{{ parking_lot.id }}</th>
-                <td>{{ parking_lot.address }}</td>
-                <td>{{ parking_lot.maximum_no_of_spots }}</td>
-                <td><a href="/user/book/parking_spot/{{ parking_lot.id }}" class="btn btn-success">Book</a></td>
-            </tr>
-            {% endfor %}
-        </tbody>
+<div class="container mt-4">
+  <div class="text-center mb-4">
+    <h2 class="text-primary">Recent Parking History</h2>
+  </div>
+
+  <table class="table table-bordered text-center">
+    <thead class="table-light">
+      <tr>
+        <th>ID</th>
+        <th>Location</th>
+        <th>Vehicle No</th>
+        <th>Timestamp</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for reservation in reservations %}
+      <tr>
+        <td>{{ reservation.id }}</td>
+        <td>{{ reservation.location_name }}</td>
+        <td>{{ reservation.vehicle_no }}</td>
+        <td>{{ reservation.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td>
+          {% if reservation.end_time is none %}
+          <a href="/user/release/{{ reservation.id }}" class="btn btn-danger btn-sm">Release</a>
+          {% else %}
+          <span class="btn btn-success btn-sm disabled">Parked Out</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <hr class="my-5">
+  <div class="mb-4">
+    <h2 class="text-primary">Search Parking @Location / Pincode</h2>
+    <form method="GET" action="{{ url_for('user_dashboard') }}" class="d-flex w-50">
+      <input type="text" name="search" class="form-control me-2" placeholder="e.g. Dadar Road or 400028">
+      <button type="submit" class="btn btn-outline-primary">Search</button>
+    </form>
+  </div>
+
+  <div class="mt-4">
+    <h3 class="text-secondary">Parking Lots{% if request.args.get('search') %} @ {{ request.args.get('search') }}{% endif %}</h3>
+    <table class="table table-striped text-center">
+      <thead class="table-light">
+        <tr>
+          <th>ID</th>
+          <th>Address</th>
+          <th>Availability</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lot in parking_lots %}
+        <tr>
+          <td>{{ lot.id }}</td>
+          <td>{{ lot.address }}</td>
+          <td>{{ lot.spots|selectattr('status', 'equalto', 'A')|list|length }}</td>
+          <td><a href="/user/book/parking_spot/{{ lot.id }}" class="btn btn-primary btn-sm">Book</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
+  </div>
 </div>
 {% endblock %}
