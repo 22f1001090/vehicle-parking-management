@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, redirect, flash
+from flask import Flask, render_template, request, url_for, redirect, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
@@ -572,6 +572,147 @@ def logout():
     logout_user()
     flash("Logged out successfully")
     return redirect('/login')
+
+
+#-----------------------API Routes---------------------------------
+
+# Get all users
+@app.route('/api/users', methods=['GET'])
+def api_get_users():
+    users = User.query.all()
+    return jsonify([{
+        'id': u.id,
+        'username': u.username,
+        'fullname': u.fullname,
+        'address': u.address,
+        'pincode': u.pincode,
+        'is_admin': u.is_admin
+    } for u in users])
+
+
+
+# Get all lots
+@app.route('/api/lots', methods=['GET'])
+def api_get_lots():
+    lots = Parking_Lot.query.all()
+    return jsonify([{
+        'id': lot.id,
+        'prime_location_name': lot.prime_location_name,
+        'price': lot.price,
+        'address': lot.address,
+        'pincode': lot.pincode,
+        'maximum_no_of_spots': lot.maximum_no_of_spots
+    } for lot in lots])
+
+# Create a new lot
+@app.route('/api/lots', methods=['POST'])
+def api_create_lot():
+    data = request.json
+    lot = Parking_Lot(
+        prime_location_name=data['prime_location_name'],
+        price=data['price'],
+        address=data['address'],
+        pincode=data['pincode'],
+        maximum_no_of_spots=data['maximum_no_of_spots']
+    )
+    db.session.add(lot)
+    db.session.commit()
+    for _ in range(lot.maximum_no_of_spots):
+        spot = Parking_Spot(lot_id=lot.id, status='A')
+        db.session.add(spot)
+    db.session.commit()
+    return jsonify({'message': 'Lot created successfully'}), 201
+
+# Update a lot
+@app.route('/api/lots/<int:lot_id>', methods=['PUT'])
+def api_update_lot(lot_id):
+    lot = Parking_Lot.query.get_or_404(lot_id)
+    data = request.json
+    lot.prime_location_name = data['prime_location_name']
+    lot.price = data['price']
+    lot.address = data['address']
+    lot.pincode = data['pincode']
+    lot.maximum_no_of_spots = data['maximum_no_of_spots']
+    db.session.commit()
+    return jsonify({'message': 'Lot updated successfully'})
+
+# Delete a lot
+@app.route('/api/lots/<int:lot_id>', methods=['DELETE'])
+def api_delete_lot(lot_id):
+    lot = Parking_Lot.query.get_or_404(lot_id)
+    db.session.delete(lot)
+    db.session.commit()
+    return jsonify({'message': 'Lot deleted successfully'})
+
+
+
+# Get all spots
+@app.route('/api/spots', methods=['GET'])
+def api_get_spots():
+    spots = Parking_Spot.query.all()
+    return jsonify([{
+        'id': s.id,
+        'lot_id': s.lot_id,
+        'status': s.status
+    } for s in spots])
+
+# Delete a spot
+@app.route('/api/spots/<int:spot_id>', methods=['DELETE'])
+def api_delete_spot(spot_id):
+    spot = Parking_Spot.query.get_or_404(spot_id)
+    if spot.status == 'O':
+        return jsonify({'error': 'Cannot delete occupied spot'}), 400
+    db.session.delete(spot)
+    db.session.commit()
+    return jsonify({'message': 'Spot deleted successfully'})
+
+
+# Get all reservations
+@app.route('/api/reservations', methods=['GET'])
+def api_get_reservations():
+    reservations = Reservation.query.all()
+    return jsonify([{
+        'id': r.id,
+        'user_id': r.user_id,
+        'spot_id': r.spot_id,
+        'vehicle_no': r.vehicle_no,
+        'start_time': r.start_time.isoformat(),
+        'end_time': r.end_time.isoformat() if r.end_time else None,
+        'parking_cost': r.parking_cost
+    } for r in reservations])
+
+# Create a new reservation (assumes first available spot in the given lot)
+@app.route('/api/reservations', methods=['POST'])
+def api_create_reservation():
+    data = request.json
+    lot_id = data['lot_id']
+    vehicle_no = data['vehicle_no']
+    user_id = data['user_id']
+
+    available_spot = Parking_Spot.query.filter_by(lot_id=lot_id, status='A').first()
+    if not available_spot:
+        return jsonify({'error': 'No available spots'}), 400
+
+    reservation = Reservation(
+        user_id=user_id,
+        spot_id=available_spot.id,
+        vehicle_no=vehicle_no,
+        start_time=datetime.now()
+    )
+    db.session.add(reservation)
+    available_spot.status = 'O'
+    db.session.commit()
+    return jsonify({'message': 'Reservation created successfully'}), 201
+
+
+# Delete reservation
+@app.route('/api/reservations/<int:res_id>', methods=['DELETE'])
+def api_delete_reservation(res_id):
+    reservation = Reservation.query.get_or_404(res_id)
+    db.session.delete(reservation)
+    db.session.commit()
+    return jsonify({'message': 'Reservation deleted successfully'})
+
 
 
 
